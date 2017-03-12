@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * GKislin
@@ -31,47 +33,25 @@ public class UserMealsUtil {
 
     public static List<UserMealWithExceed>  getFilteredWithExceeded(List<UserMeal> mealList, LocalTime startTime,
                                                                     LocalTime endTime, int caloriesPerDay) {
-        // TODO return filtered list with correctly exceeded field
 
-        List<UserMealWithExceed> mealsWithExceed = getWithExceeded(mealList, caloriesPerDay);
-
-        List<UserMealWithExceed> result = new ArrayList<>();
-
-        for (UserMealWithExceed meal : mealsWithExceed){
-            if (TimeUtil.isBetween(meal.getDateTime().toLocalTime(), startTime, endTime))
-                result.add(meal);
-        }
-
-        return result;
+        return getWithExceeded(mealList, caloriesPerDay).stream()
+        .filter(meal -> TimeUtil.isBetween(meal.getDateTime().toLocalTime(), startTime, endTime))
+        .collect(Collectors.toList());
     }
 
 
     public static List<UserMealWithExceed> getWithExceeded(List<UserMeal> mealList, int caloriesPerDay){
 
-        // Делаем мапу с датами и количеством каллорий, чтобы узнать превышено ли количество каллорий
-        Map<LocalDate, Integer> datesAndCalories = new HashMap<>();
+        // Делаем мапу с датами и количеством каллорий, чтобы узнать превышено ли количество каллорий за определенный день
 
-        for (UserMeal meal : mealList){
-            if (!datesAndCalories.containsKey(meal.getDateTime().toLocalDate()))
-                datesAndCalories.put(meal.getDateTime().toLocalDate(), meal.getCalories());
-            else {
-                int calories = datesAndCalories.get(meal.getDateTime().toLocalDate());
-                calories += meal.getCalories();
-                datesAndCalories.remove(meal.getDateTime().toLocalDate());
-                datesAndCalories.put(meal.getDateTime().toLocalDate(), calories);
-            }
-        }
+        Map<LocalDate, Integer> map = mealList.stream().collect(Collectors.groupingBy(meal -> meal.getDateTime().toLocalDate(), Collectors.summingInt(UserMeal::getCalories)));
 
-        List<UserMealWithExceed> result = new ArrayList<>();
+        // Возвращаем list, который наполнен UserMealWithExceed. Узнаем exceed или нет, сравнивая установленное количество каллорий
+        // с суммарным количеством каллорий за определенный день
 
-        for (UserMeal meal : mealList){
-            if (datesAndCalories.get(meal.getDateTime().toLocalDate()) > caloriesPerDay)
-                result.add(new UserMealWithExceed(meal.getDateTime(), meal.getDescription(),
-                        meal.getCalories(), true));
-            else result.add(new UserMealWithExceed(meal.getDateTime(), meal.getDescription(),
-                    meal.getCalories(), false));
-        }
-
-        return result;
+        return mealList.stream()
+                .map(meal -> new UserMealWithExceed(meal.getDateTime(), meal.getDescription(),
+                        meal.getCalories(), caloriesPerDay < map.get(meal.getDateTime().toLocalDate())))
+                .collect(Collectors.toList());
     }
 }
