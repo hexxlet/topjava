@@ -23,11 +23,15 @@
             <c:set var="color" value="red" />
         </c:if>
     <tr class="${color}">
+        <td ><c:out value="${meal.id}"/></td>
         <td ><tags:localDate date="${meal.dateTime}" pattern="dd.MM.yyyy" /></td>
         <td ><c:out value="${meal.description}"/></td>
         <td ><c:out value="${meal.calories}"/></td>
+        <td ><a href="meals?action=edit&id=<c:out value="${meal.id}" />">Update</a> </td>
+        <td ><a href="meals?action=delete&id=<c:out value="${meal.id}" />">Delete</a> </td>
     </tr>
     </c:forEach>
 </table>
+<a href="editmeals.jsp">Add meal</a>
 </body>
 </html>
