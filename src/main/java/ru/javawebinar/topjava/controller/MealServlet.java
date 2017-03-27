@@ -26,6 +26,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class MealServlet extends HttpServlet {
     private static final Logger LOG = getLogger(MealServlet.class);
     MealDaoInt dao = new MealDao();
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -57,7 +58,7 @@ public class MealServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
         String id = req.getParameter("id");
-        LocalDate date = LocalDate.parse(req.getParameter("dateTime"), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        LocalDate date = LocalDate.parse(req.getParameter("dateTime"), formatter);
         LocalDateTime dateTime = LocalDateTime.of(date, LocalTime.of(0, 0));
         String description = req.getParameter("description");
         int calories = Integer.parseInt(req.getParameter("calories"));
